@@ -17,6 +17,32 @@ from services.coaching.tts import TextToSpeech
 from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
 
   
+def get_ice_servers():
+    """Build ICE server configuration from deployment secrets."""
+    ice_servers = [{"urls": ["stun:stun.l.google.com:19302"]}]
+
+    def setting(name):
+        value = os.environ.get(name)
+        if value:
+            return value
+        if hasattr(st, "secrets") and name in st.secrets:
+            return st.secrets[name]
+        return ""
+
+    turn_urls = setting("TURN_URLS") or setting("TURN_URL")
+    turn_username = setting("TURN_USERNAME")
+    turn_password = setting("TURN_PASSWORD")
+
+    if turn_urls and turn_username and turn_password:
+        ice_servers.append({
+            "urls": [url.strip() for url in turn_urls.split(",") if url.strip()],
+            "username": turn_username,
+            "credential": turn_password,
+        })
+
+    return ice_servers, bool(turn_urls and turn_username and turn_password)
+
+
 def main():
     st.set_page_config(
         page_icon="🏋️‍♀️",
@@ -200,11 +226,18 @@ def main():
             unsafe_allow_html=True,
         )
     else:
+        ice_servers, has_turn = get_ice_servers()
+        if not has_turn:
+            st.warning(
+                "Camera connection may fail on restricted networks. "
+                "Add TURN_URL, TURN_USERNAME, and TURN_PASSWORD to Streamlit secrets."
+            )
+
         context = webrtc_streamer(
             key="exercise-analysis",
             mode=WebRtcMode.SENDRECV,
             video_processor_factory=VideoProcessorClass,
-            rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+            rtc_configuration={"iceServers": ice_servers},
             media_stream_constraints={
                 "video": True,
                 "audio": False
