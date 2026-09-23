@@ -19,7 +19,17 @@ from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
   
 def get_ice_servers():
     """Build ICE server configuration from deployment secrets."""
-    ice_servers = [{"urls": ["stun:stun.l.google.com:19302"]}]
+    ice_servers = [
+        {"urls": ["stun:stun.l.google.com:19302"]},
+        {
+            "urls": [
+                "turn:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:443?transport=tcp",
+            ],
+            "username": "openrelayproject",
+            "credential": "openrelayproject",
+        },
+    ]
 
     def setting(name):
         value = os.environ.get(name)
@@ -40,7 +50,7 @@ def get_ice_servers():
             "credential": turn_password,
         })
 
-    return ice_servers, bool(turn_urls and turn_username and turn_password)
+    return ice_servers
 
 
 def main():
@@ -226,12 +236,7 @@ def main():
             unsafe_allow_html=True,
         )
     else:
-        ice_servers, has_turn = get_ice_servers()
-        if not has_turn:
-            st.warning(
-                "Camera connection may fail on restricted networks. "
-                "Add TURN_URL, TURN_USERNAME, and TURN_PASSWORD to Streamlit secrets."
-            )
+        ice_servers = get_ice_servers()
 
         context = webrtc_streamer(
             key="exercise-analysis",
