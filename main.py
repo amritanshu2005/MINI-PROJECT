@@ -41,12 +41,15 @@ def main():
 
             if not api_key and hasattr(st, "secrets") and "GROQ_API_KEY" in st.secrets:
                 api_key = st.secrets["GROQ_API_KEY"]
-            
-            groq_client = Groq(api_key=api_key)
-            llm_coach = LLMCoach(groq_client)
-            tts = TextToSpeech()
-            st.session_state.voice_pipeline = VoicePipeline(llm_coach, tts)
-        except Exception as e:
+
+            if not api_key:
+                st.session_state.voice_pipeline = None
+            else:
+                groq_client = Groq(api_key=api_key)
+                llm_coach = LLMCoach(groq_client)
+                tts = TextToSpeech()
+                st.session_state.voice_pipeline = VoicePipeline(llm_coach, tts)
+        except Exception:
             st.session_state.voice_pipeline = None
 
     workout_started = st.session_state.get("workout_started", False)
