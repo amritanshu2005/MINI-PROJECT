@@ -18,7 +18,7 @@ from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
 
   
 def get_ice_servers():
-    """Return the built-in ICE servers used by the camera connection."""
+    """Build ICE servers with optional authenticated deployment relay."""
     ice_servers = [
         {"urls": ["stun:stun.l.google.com:19302"]},
         {
@@ -30,6 +30,25 @@ def get_ice_servers():
             "credential": "openrelayproject",
         },
     ]
+
+    def setting(name):
+        value = os.environ.get(name)
+        if value:
+            return value
+        if hasattr(st, "secrets") and name in st.secrets:
+            return st.secrets[name]
+        return ""
+
+    turn_urls = setting("TURN_URLS") or setting("TURN_URL")
+    turn_username = setting("TURN_USERNAME")
+    turn_password = setting("TURN_PASSWORD")
+
+    if turn_urls and turn_username and turn_password:
+        ice_servers.append({
+            "urls": [url.strip() for url in turn_urls.split(",") if url.strip()],
+            "username": turn_username,
+            "credential": turn_password,
+        })
 
     return ice_servers
 
