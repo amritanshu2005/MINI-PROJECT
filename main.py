@@ -53,6 +53,24 @@ def get_ice_servers():
     return ice_servers
 
 
+@st.fragment(run_every="500ms")
+def render_live_workout():
+    ice_servers = get_ice_servers()
+    context = webrtc_streamer(
+        key="exercise-analysis",
+        mode=WebRtcMode.SENDRECV,
+        video_processor_factory=VideoProcessorClass,
+        rtc_configuration={"iceServers": ice_servers},
+        media_stream_constraints={
+            "video": True,
+            "audio": False
+        },
+        async_processing=True
+    )
+    sync_metrics_update(context)
+    inject_webrtc_styles()
+
+
 def main():
     st.set_page_config(
         page_icon="🏋️‍♀️",
@@ -237,23 +255,7 @@ def main():
             unsafe_allow_html=True,
         )
     else:
-        ice_servers = get_ice_servers()
-
-        context = webrtc_streamer(
-            key="exercise-analysis",
-            mode=WebRtcMode.SENDRECV,
-            video_processor_factory=VideoProcessorClass,
-            rtc_configuration={"iceServers": ice_servers},
-            media_stream_constraints={
-                "video": True,
-                "audio": False
-            },
-            async_processing=True
-        )
-
-        sync_metrics_update(context)
-
-        inject_webrtc_styles()
+        render_live_workout()
 
     st.divider()
 

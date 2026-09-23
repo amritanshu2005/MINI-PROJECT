@@ -16,9 +16,14 @@ from detectors.lunges import LungesDetector
 from services.config.workout_config import POSE_CONNECTIONS
 
 
-@st.cache_resource(show_spinner="Preparing pose detection...")
+@st.cache_data(show_spinner="Preparing pose detection...")
+def load_pose_model(model_path):
+    with open(model_path, "rb") as model_file:
+        return model_file.read()
+
+
 def create_pose_landmarker(model_path):
-    base_option = python.BaseOptions(model_asset_path=model_path)
+    base_option = python.BaseOptions(model_asset_buffer=load_pose_model(model_path))
     options = vision.PoseLandmarkerOptions(
         base_options=base_option,
         running_mode=vision.RunningMode.VIDEO,
@@ -32,7 +37,7 @@ def create_pose_landmarker(model_path):
 
 def warm_up_pose_model():
     model_path = os.path.join(os.getcwd(), "ml_models", "pose_landmarker_full.task")
-    create_pose_landmarker(model_path)
+    load_pose_model(model_path)
 
 
 class VideoProcessorClass(VideoProcessorBase):
