@@ -3,6 +3,7 @@ import cv2
 import av
 import numpy as np
 import mediapipe as mp
+import streamlit as st
 import threading
 from streamlit_webrtc import VideoProcessorBase
 from mediapipe.tasks import python
@@ -15,6 +16,25 @@ from detectors.lunges import LungesDetector
 from services.config.workout_config import POSE_CONNECTIONS
 
 
+@st.cache_resource(show_spinner="Preparing pose detection...")
+def create_pose_landmarker(model_path):
+    base_option = python.BaseOptions(model_asset_path=model_path)
+    options = vision.PoseLandmarkerOptions(
+        base_options=base_option,
+        running_mode=vision.RunningMode.VIDEO,
+        min_pose_detection_confidence=0.7,
+        min_pose_presence_confidence=0.7,
+        min_tracking_confidence=0.7,
+        output_segmentation_masks=False
+    )
+    return vision.PoseLandmarker.create_from_options(options)
+
+
+def warm_up_pose_model():
+    model_path = os.path.join(os.getcwd(), "ml_models", "pose_landmarker_full.task")
+    create_pose_landmarker(model_path)
+
+
 class VideoProcessorClass(VideoProcessorBase):
     def __init__(self):
         self._lock = threading.Lock()
@@ -22,18 +42,7 @@ class VideoProcessorClass(VideoProcessorBase):
         self._exercise_type = "Squats"
 
         model_path = os.path.join(os.getcwd(), "ml_models", "pose_landmarker_full.task")
-        base_option = python.BaseOptions(model_asset_path=model_path)
-
-        options = vision.PoseLandmarkerOptions(
-            base_options=base_option,
-            running_mode=vision.RunningMode.VIDEO,
-            min_pose_detection_confidence=0.7,
-            min_pose_presence_confidence=0.7,
-            min_tracking_confidence=0.7,
-            output_segmentation_masks=False
-        )
-
-        self._landmarker = vision.PoseLandmarker.create_from_options(options)
+        self._landmarker = create_pose_landmarker(model_path)
 
         self._detectors = {
             "Squats": SquatDetector(),

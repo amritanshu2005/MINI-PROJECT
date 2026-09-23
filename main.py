@@ -8,7 +8,7 @@ from services.config.workout_config import EXERCISE_OPTIONS
 from services.ui.style_loader import load_css, inject_local_font, inject_webrtc_styles
 from services.persistence.exercise_repository import init_db
 from streamlit_webrtc import webrtc_streamer, WebRtcMode
-from services.vision.exercise_video_processor import VideoProcessorClass
+from services.vision.exercise_video_processor import VideoProcessorClass, warm_up_pose_model
 from services.tracking.metrics import sync_metrics_update
 from services.persistence.exercise_repository import get_users_exercises
 from groq import Groq
@@ -112,6 +112,7 @@ def main():
             start_session_button = st.button("Start Workout", width="stretch", key="start_session_button")
 
             if start_session_button:
+                warm_up_pose_model()
                 st.session_state.exercise_type = plan_exercise
                 st.session_state.target_sets = int(plan_sets)
                 st.session_state.reps_per_set = int(plan_reps)
