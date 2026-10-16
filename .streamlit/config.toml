@@ -1,0 +1,15 @@
+[theme]
+base = "light"
+primaryColor = "#17153A"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#EEF0F6"
+textColor = "#17153A"
+borderColor = "#DADDE8"
+font = "'Instrument Sans', 'Segoe UI', sans-serif"
+headingFont = "Unbounded, 'Segoe UI', sans-serif"
+headingFontWeights = 700
+baseRadius = "12px"
+buttonRadius = "999px"
+showWidgetBorder = true
+redColor = "#E5322D"
+blueColor = "#2F6BFF"
