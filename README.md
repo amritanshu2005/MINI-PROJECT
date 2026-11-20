@@ -70,7 +70,7 @@ Each exercise uses angle thresholds and a state machine to move between stages. 
 ### Installation
 
 ```bash
-git clone https://github.com/A-man-Sharma-04/MINI-PROJECT.git
+git clone https://github.com/amritanshu2005/MINI-PROJECT
 cd MINI-PROJECT
 
 python -m venv .venv
